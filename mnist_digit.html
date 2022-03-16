@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <title>Visualization of a Neural Net for Handwritten Digit Recognition using Javascript, Python and the MNIST Dataset</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link href="./styles.css" rel="stylesheet"/>
+      <script src="https://d3js.org/d3.v4.js"></script>
+      <script  src="./visualize.js"></script>
+   </head>
+   <body style="padding:5px;">
+      <h1 class="title">Visualization of a Neural Net for Handwritten Digit Recognition using Python, Javascript and the MNIST Dataset</h1>
+      <div>
+         <p class="instruction">This is an interactive demonstration of how handwritten numbers are classified by a neural network.<br>
+            Draw your digit in the leftmost box, and click "Recognize", or "Clear" to start over.
+         </p>
+      </div>
+      <div class="container">
+         <div class="main_div">
+            <div class="boxes" style="display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: center">
+               <div>
+                  <div class="drawing_div">
+                     <canvas id="can" width="280" height="280" style="border:1px solid; margin: 10px; cursor: crosshair;"></canvas>
+                     <div id="nnInput"></div>
+                  </div>
+                  <div style="margin-left: 15px;">
+                    <div>
+                      <input type="checkbox" id="realtime">
+                      <label for="horns">Enable realtime recognition</label>
+                    </div>
+                  </div>
+                  <div class="selection_div">
+                     <div>
+                        <div style="float:left;padding-right:10px;"><button class="btn btn-clear" id="clr"  onclick="erase()">Clear</button></div>
+                        <div style="float:left;"><button class="btn btn-recognize" id="recognize" onclick="recognize()">Recognize</button></div>
+                     </div>
+                  </div>
+               </div>
+               <div id="color_scale" >
+                  <p>0.0 -</p>
+                  <p>0.2 -</p>
+                  <p>0.4 -</p>
+                  <p>0.6 -</p>
+                  <p>0.8 -</p>
+                  <p>1.0 -</p>
+               </div>
+               <div>
+                  <div class="sqare_layer_box">
+                     <div style=" height: 280px; display: inline-block; margin: 10px; border: 1px solid">
+                        <!--<img src="abs0.png" width="160" height="160" style="margin: 10px"></img>-->
+                        <canvas id="input_layer_canvas" width="280" height="280"></canvas>
+                     </div>
+                     <p class="layer_details">Preprocessed Input,<br>784 neurons<br>(28*28)</p>
+                  </div>
+               </div>
+               <div>
+                  <div class="sqare_layer_box">
+                     <div id="layer2" style=" height: 280px; width: 280px; display: inline-block; margin: 10px; border: 1px solid">
+                     </div>
+                     <p class="layer_details">Second Layer,<br>196 neurons<br>(14*14)</p>
+                  </div>
+               </div>
+               <div class="div-block-4">
+                  <div class="div-block">
+                     <div id="layer3" class="output_graph" ></div>
+                     <div class="scale_div">
+                        <div class="vertical-numbers">9<br>8<br>7<br>6<br>5<br>4<br>3<br>2<br>1<br>0</div>
+                     </div>
+                  </div>
+                  <p class="layer_details_2">Output layer,<br>10 neurons<br>(1*10)</p>
+               </div>
+               <div style="justify-content: center; margin-left: 20px">
+                  <div id="interpr_out" style="margin: 10px">
+                     <div style="font-size:100px; text-align: center; border-bottom: 1px solid;" id="nnOut"></div>
+                  </div>
+                  <p class="layer_details_2">Interpreted<br>Output</p>
+               </div>
+            </div>
+         </div>
+      </div>
+      <script src="./classify.js" type="text/javascript"></script>
+      <hr style="margin-left: 5vw; margin-right: 5vw; margin-bottom: 50px">
+      <div>
+        <h3 class="expl_headline">About</h3>
+         <p class="explanation">
+            This interactive model aims to visualize how handwritten digits are classified by a simple neural network. 
+            The network was trained using a Python model made from scratch as described in the book 
+            <a href="http://neuralnetworksanddeeplearning.com/">Neural Networks and Deep Learning</a> by Michael Nielsen and uses no special neural network libraries.
+            <br><br>
+            It was trained on the <a href="http://yann.lecun.com/exdb/mnist/">MNIST set</a> of 60'000 training examples. 
+            The forward implementation is done in Javascript, meaning the weights and biases responsible for classifying the digits were imported into the Javascript code.
+         </p>
+        <h3 class="expl_headline">How it works</h3>
+         <p class="explanation">
+            After a number is drawn on the canvas, the image is binned into 784 pixels and preprocessed in order to make it more similar to the images that it was trained upon.<br>
+            The main aspects of the preprocessing are the centering of the image as well as scaling the stroke width in relation to the size of the drawing.
+            Next, the second, otherwise "hidden" layer is computed. The value of each neuron in the second layer is computed as a sum 
+            of all of the activations of neurons in the input layer, each of which is weighted accordingly.
+            While this intermediate layer is ultimately not necessary, it can drastically improve the performance as opposed to directly connecting the input to the output layer.
+            It allows the task of recognizing digits to be broken down into specific transformations, like picking up on straight lines or circular shapes before classifying the input as a whole.
+            Lastly, values of the output layer are computed as a function of the second layer. Ideally, the neuron corresponding to the correct digit will have a value of nearly 1, while all others have a value close to 0.
+            <br><br>
+            This value of the output neuron also shows how "confident" the network is in its guess. 
+            However, the network tends often to be very confident, even if it's wrong or if the drawn input does not resemble any digit at all. 
+            This is because the cost function that was used to train the network penalizes uncertain outputs, even if, for example the training input is a 7 but also looks a little bit like a 1.
+         </p>
+        <h3 class="expl_headline">Results</h3>
+         <p class="explanation">
+            The network scores approximately 96.5% accuracy on the set of 10'000 validation images provided by the MNIST set. 
+            In other words, it makes an error on about one digit in 29 (on the validation images). 
+            This result was achieved by taking the best of ten runs of training the network, each time starting with a random set of weights and biases. 
+            <br><br>
+            In my experience, this number is probably closer to 15 when drawing on the canvas. I suspect that when using a computer mouse or trackpad, the image might not have
+            some of the characteristics that the network has learnt to recognize in the <i>handwritten</i> training examples.
+            <br><br>
+            Another reason might be small differences in the style of writing. As all of the training examples are provided by the american <i>National Institute of Standards and Technology</i>, 
+            they are likely to use american conventions, such as writing a one as a single horizontal stroke, as opposed to also having a small, left-and-down facing stroke at the top. 
+            (Ones using the latter style are thus often missclassified as sevens.)
+         </p>
+      </div>
+
+      <footer>
+        <p>Written by Ben Heckmann, 2021. For source code, visit the <a href="#">github page</a> for this project.</p>
+      </footer>
+   </body>
+</html>
